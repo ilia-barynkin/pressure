@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import util
 import numpy as np
-from math import e, log
+from math import e, log, tan
 from scipy.signal import spectrogram
 
 def calculate_pump_performance(pressure_start, pressure_end, pressure_start2, pressure_end2, pressure_start3, pressure_end3):
@@ -38,28 +38,27 @@ def process_pressure_mid_pulses(pressure_data: np.ndarray, impulses_cnt: int = 2
 
     return [imp_mid, imp_mid_smoothed, imp_mid_smoothed_dbl, imp_mid_grad, imp_mid_smoothed_grad, imp_mid_smoothed_dbl_grad]
 
-pulse_05Hz = process_pressure_mid_pulses(v_05Hz, 2)
-pulse_1Hz = process_pressure_mid_pulses(v_1Hz, 4)
-pulse_2Hz = process_pressure_mid_pulses(v_2Hz, 8)
+def get_impulse_values(arr: np.ndarray, epsilon: float = 0.001) -> np.ndarray:
+    wnd_start = -1
+    wnd_end = 1
+    for i in range(1, len(arr) - 1):
+        if arr[i] >= epsilon and wnd_start == -1:
+            wnd_start = i
+        if arr[i] < epsilon and wnd_start != -1:
+            wnd_end = i
+            break
+    
+    return arr[wnd_start:wnd_end]
 
-plt.subplot(3, 1, 1)
-plt.plot(pulse_05Hz[2])
-plt.title('Pressure 0.5 Hz')
-plt.subplot(3, 1, 2)
-plt.plot(pulse_1Hz[2])
-plt.title('Pressure 1 Hz')
-plt.subplot(3, 1, 3)
-plt.plot(pulse_2Hz[2])
-plt.title('Pressure 2 Hz')
-plt.show()
+grad_pulse_05Hz = process_pressure_mid_pulses(v_05Hz, 1000)[5]
+grad_pulse_1Hz = process_pressure_mid_pulses(v_1Hz, 1000)[5]
+grad_pulse_2Hz = process_pressure_mid_pulses(v_2Hz, 1000)[5]
 
-plt.subplot(3, 1, 1)
-plt.plot(pulse_05Hz[5])
-plt.title('Pressure gradient 0.5 Hz')
-plt.subplot(3, 1, 2)
-plt.plot(pulse_1Hz[5])
-plt.title('Pressure gradient 1 Hz')
-plt.subplot(3, 1, 3)
-plt.plot(pulse_2Hz[5])
-plt.title('Pressure gradient 2 Hz')
+plt.subplot(1, 1, 1)
+
+some_val = 0.01
+
+plt.plot(np.cumsum(np.abs(np.cumsum(grad_pulse_05Hz))) / tan(0.5 * some_val))
+plt.plot(np.cumsum(np.abs(np.cumsum(grad_pulse_1Hz))) / tan(1 * some_val))
+plt.plot(np.cumsum(np.abs(np.cumsum(grad_pulse_2Hz))) / tan(2 * some_val))
 plt.show()

@@ -1,16 +1,16 @@
 import matplotlib.pyplot as plt
 import pandas as pd
-import util
+#import util
 import numpy as np
 from math import e, log, tan
-from scipy.signal import spectrogram
 
 def calculate_pump_performance(pressure_start, pressure_end, pressure_start2, pressure_end2, pressure_start3, pressure_end3):
     return (pressure_start - pressure_end) / (pressure_start2 - pressure_end2)
 
-df_05Hz = pd.read_csv('data/new/4,4-4,0-0,5G.csv', index_col=None, header=None)
+df_05Hz = pd.read_csv('data/short/1.csv', index_col=None, header=None)
 df_1Hz = pd.read_csv('data/new/4,4-4,35-1G.csv', index_col=None, header=None)
 df_2Hz = pd.read_csv('data/new/4,4-4,35-2G.csv', index_col=None, header=None)
+
 
 v_05Hz = df_05Hz.to_numpy().flatten()
 v_1Hz = df_1Hz.to_numpy().flatten()
@@ -50,15 +50,34 @@ def get_impulse_values(arr: np.ndarray, epsilon: float = 0.001) -> np.ndarray:
     
     return arr[wnd_start:wnd_end]
 
-grad_pulse_05Hz = process_pressure_mid_pulses(v_05Hz, 1000)[5]
-grad_pulse_1Hz = process_pressure_mid_pulses(v_1Hz, 1000)[5]
-grad_pulse_2Hz = process_pressure_mid_pulses(v_2Hz, 1000)[5]
+def find_asymptotes(pulse: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    """
+    Find lower and upper asymptotes of a pulsating function represented as an np.ndarray.
+    
+    Parameters:
+    pulse (np.ndarray): The input pulsating function.
+    
+    Returns:
+    Tuple[np.ndarray, np.ndarray]: A tuple containing two np.ndarrays, the first one is the lower
+                                   asymptote line and the second one is the upper asymptote line.
+    """
+    lower_asymptote = np.min(pulse, axis=0)
+    upper_asymptote = np.max(pulse, axis=0)
 
-plt.subplot(1, 1, 1)
+    # Create arrays filled with the value of the lower and upper asymptotes
+    lower_line = np.full_like(pulse, lower_asymptote)
+    upper_line = np.full_like(pulse, upper_asymptote)
+
+    return lower_line, upper_line
+
+grad_pulse_05Hz = process_pressure_mid_pulses(v_05Hz, 30)[5]
+#grad_pulse_1Hz = process_pressure_mid_pulses(v_1Hz, 20)[5]
+#grad_pulse_2Hz = process_pressure_mid_pulses(v_2Hz, 40)[5]
 
 some_val = 0.01
 
-plt.plot(np.cumsum(np.abs(np.cumsum(grad_pulse_05Hz))) / tan(0.5 * some_val))
-plt.plot(np.cumsum(np.abs(np.cumsum(grad_pulse_1Hz))) / tan(1 * some_val))
-plt.plot(np.cumsum(np.abs(np.cumsum(grad_pulse_2Hz))) / tan(2 * some_val))
+#df_05Hz.plot()
+plt.plot(grad_pulse_05Hz[0])
+#plt.plot(np.cumsum(np.cumsum(np.abs(np.cumsum(grad_pulse_1Hz)))))
+#plt.plot(np.cumsum(np.cumsum(np.abs(np.cumsum(grad_pulse_2Hz)))))
 plt.show()

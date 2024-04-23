@@ -62,3 +62,4 @@ def add_missing_rows(df1, df2):
         zeros_df = pd.DataFrame(np.zeros((additional_rows, df2.shape[1])), columns=df2.columns)
         df2 = pd.concat([df2, zeros_df], ignore_index=True)
     return (df1, df2)
+
